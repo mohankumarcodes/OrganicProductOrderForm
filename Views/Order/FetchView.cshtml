@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "View Orders";
+}
+
+<h2>View Orders by Date</h2>
+
+<div class="d-flex align-items-center gap-2 mb-3">
+    <label for="dateSelect" class="me-2 fw-bold">Select Date:</label>
+    <select id="dateSelect" class="form-select" style="width: 180px;">
+        <option value="">-Select Date-</option>
+        @foreach (var date in (SelectList)ViewBag.Dates)
+        {
+            <option value="@date.Value">@date.Text</option>
+        }
+    </select>
+    <button id="fetchBtn" class="btn btn-primary mt-2">Fetch Orders</button>
+</div>
+
+<hr />
+
+<table id="ordersTable" class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+    <tbody>
+       @*  Orders will be loaded here by Ajax *@
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $("#fetchBtn").click(function () {
+                var selectedDate = $("#dateSelect").val();
+                console.log("Selected date:", selectedDate);
+
+                if (!selectedDate) {
+                    alert("Please select a date first.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GetOrdersByDate", "Order")',
+                    method: 'GET',
+                    data: { date: selectedDate },
+                    success: function (data) {
+                        var tbody = $("#ordersTable tbody");
+                        tbody.empty();
+
+                        if (!data || data.length === 0) {
+                            tbody.append("<tr><td colspan='4'>No orders found for this date</td></tr>");
+                            return;
+                        }
+
+                        $.each(data, function (index, item) {
+                            tbody.append(
+                                "<tr>" +
+                                "<td>" + item.productName + "</td>" +
+                                "<td>" + item.quantity + "</td>" +
+                                "<td>" + item.unit + "</td>" +
+                                "<td>" + item.price + "</td>" +
+                                "</tr>"
+                            );
+                        });
+                    },
+                    error: function () {
+                        alert("Failed to fetch orders from server.");
+                    }
+                });
+            });
+
+        });
+    </script>
+}
