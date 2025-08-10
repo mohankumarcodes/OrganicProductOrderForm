@@ -32,9 +32,9 @@
             <div class="col-md-2">
                 <input id="unit" class="form-control" type="text" placeholder="Unit (kg/pkt)" />
             </div>
-            <div class="col-md-2">
+           @*  <div hidden class="col-md-2">
                 <input id="price" class="form-control" type="number" step="0.01" placeholder="Price" />
-            </div>
+            </div> *@
             <div class="col-md-1">
                 <button id="addButton" type="button" class="btn btn-success"> + </button>
             </div>
@@ -45,13 +45,13 @@
 
     <hr />
 
-    <table class="table table-striped table-bordered" id="itemsTable">
+    <table class="table table-striped table-bordered text-center" id="itemsTable">
         <thead>
             <tr>
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Unit</th>
-                <th>Price</th>
+                <th>Total Amount</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -79,11 +79,13 @@
             
             const tbody=$("#itemsTable tbody").empty();
             orderItems.forEach((item,index)=>{
+                const totalAmount = item.quantity * item.unit;
                 const row = `<tr>
                 <td>${item.productName}</td>
                 <td>${item.quantity}</td>
                 <td>${item.unit}</td>
-                <td>${item.price}</td>
+               
+                <td>${totalAmount}</td>
                 <td><button class="btn btn-sm btn-danger remove-btn" data-index="${index}">Remove</button></td>
                 </tr>`;
         tbody.append(row);
@@ -94,8 +96,10 @@
         function validateAdd(productId, productName, quantity, unit, price) {
             if (!productId) { alert("Please select a product."); return false; }
             if (!quantity || parseFloat(quantity) <= 0) { alert("Please enter quantity > 0"); return false; }
-            if (!unit || unit.trim() === "") { alert("Please enter unit"); return false; }
-            if (price === "" || isNaN(price) || parseFloat(price) < 0) { alert("Please enter valid price"); return false; }
+            if (!unit || isNaN(parseFloat(unit)) || parseFloat(unit) <= 0) {
+                     alert("Please enter a valid numeric unit value > 0"); return false;}
+            //if (!unit || unit.trim() === "") { alert("Please enter unit"); return false; }
+            // if (price === "" || isNaN(price) || parseFloat(price) < 0) { alert("Please enter valid price"); return false; }
             return true;
         }
 
@@ -104,16 +108,16 @@
             const productName = $("#productSelect option:selected").text();
             const quantity = $("#quantity").val();
             const unit = $("#unit").val();
-            const price = $("#price").val();
+            //const price = $("#price").val();
 
-            if (!validateAdd(productId, productName, quantity, unit, price)) return;
+            if (!validateAdd(productId, productName, quantity, unit /* ,price */)) return;
 
             orderItems.push({
                 productId: parseInt(productId),
                 productName,
                 quantity: parseFloat(quantity),
                 unit,
-                price: parseFloat(price)
+                price: parseFloat(quantity) * parseFloat(unit)
             }); 
 
             renderTable();
@@ -122,7 +126,7 @@
             $("#productSelect").val("");
             $("#quantity").val("");
             $("#unit").val("");
-            $("#price").val("");
+            //$("#price").val("");
         });
 
            // Remove handler (event delegation)
@@ -155,7 +159,7 @@
                 ProductId: parseInt(i.productId, 10),
                 Quantity: parseFloat(i.quantity),
                 Unit: parseInt(i.unit),        
-                Price: parseFloat(i.price)
+                Price: parseFloat(i.quantity) * parseFloat(i.unit)
             }));
 
             $.ajax({
